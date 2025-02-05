@@ -1,0 +1,3 @@
+[submodule "ToDoApp"]
+	path = ToDoApp
+	url = https://github.com/SwapnilPawar1012/To-Do-Online-React-Native-Application.git
