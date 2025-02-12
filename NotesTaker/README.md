@@ -1,11 +1,5 @@
 # Getting Started
 
-## Sample Image
-
-![App Screenshot](NotesTaker-Images/Notes%20List.png)
-
-![App Screenshot](NotesTaker-Images/Write%20Board.png)
-
 ## Installation
 
 #### For Navigation
@@ -31,8 +25,14 @@ super.onCreate(null)
 
 - npm i
 
-## Run Project 
+## Run Project
 
-1) Go To Project Directory
+1. Go To Project Directory
 
 - npm run android
+
+## Sample Image
+
+![App Screenshot](NotesTaker-Images/Notes%20List.png)
+
+![App Screenshot](NotesTaker-Images/Write%20Board.png)
