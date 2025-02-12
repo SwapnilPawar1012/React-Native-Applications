@@ -1,16 +1,22 @@
-import {FlatList, Pressable, StyleSheet, Text, View} from 'react-native';
+import {
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import React, {useEffect, useState} from 'react';
-import {StorageFileController} from '../controller/StorageFileController';
 import {FileController} from '../controller/FileController';
 
-const Home = ({navigation}: any) => {
-  const {GetAllCopiedFiles} = StorageFileController();
-  const {HandleDeleteFile, HandleDeleteAllFile} = FileController();
+const Home = ({navigation, route}: any) => {
+  const {HandleDeleteFile, HandleFetchFiles} = FileController();
 
   const [files, setFiles] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const HandleFetchAllFiles = async () => {
-    const resp = await GetAllCopiedFiles();
+    const resp = await HandleFetchFiles();
     if (resp) {
       setFiles(resp);
       console.log('files: ', resp);
@@ -27,10 +33,22 @@ const Home = ({navigation}: any) => {
     HandleFetchAllFiles();
   }, []);
 
+  // Listen for refresh prop changes
+  useEffect(() => {
+    if (route.params?.refresh) {
+      HandleFetchAllFiles();
+      navigation.setParams({refresh: false}); // Reset param after refresh
+    }
+  }, [route.params?.refresh]);
+
   return (
     <View style={styles.container}>
       <View style={styles.plusButtonContainer}>
-        <Pressable onPress={() => navigation.navigate('EditFile')}>
+        <Pressable
+          onPress={() => {
+            navigation.navigate('EditFile');
+            setTimeout(() => HandleFetchAllFiles(), 1000);
+          }}>
           <View style={styles.plusButtonBox}>
             <Text style={styles.plusButtonText}>+</Text>
           </View>
@@ -41,22 +59,34 @@ const Home = ({navigation}: any) => {
           data={files}
           showsVerticalScrollIndicator={false}
           keyExtractor={index => index.toString()}
-          renderItem={item => (
-            <View style={styles.card}>
-              <Text style={styles.cardText}>
-                {item.item.substring(item.item.lastIndexOf('/') + 1)}
-              </Text>
-              <Pressable
-                onPress={() =>
-                  HandleOnDelete(
-                    item.item.substring(item.item.lastIndexOf('/') + 1),
-                  )
-                }>
-                <View style={styles.cardButton}>
-                  <Text style={styles.cardButtonText}>Delete</Text>
-                </View>
-              </Pressable>
-            </View>
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={HandleFetchAllFiles}
+            />
+          }
+          renderItem={({item}) => (
+            <Pressable
+              onPress={() => {
+                navigation.navigate('EditFile', {
+                  fileName: item.substring(item.lastIndexOf('/') + 1),
+                }); // Pass the item
+              }}>
+              <View style={styles.card}>
+                <Text style={styles.cardText}>
+                  {item.substring(item.lastIndexOf('/') + 1)}
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    HandleOnDelete(item.substring(item.lastIndexOf('/') + 1));
+                    setTimeout(() => HandleFetchAllFiles(), 1000);
+                  }}>
+                  <View style={styles.cardButton}>
+                    <Text style={styles.cardButtonText}>Delete</Text>
+                  </View>
+                </Pressable>
+              </View>
+            </Pressable>
           )}
         />
       ) : (
@@ -69,14 +99,14 @@ const Home = ({navigation}: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     marginVertical: 10,
   },
   plusButtonContainer: {
     position: 'absolute',
     zIndex: 1,
     bottom: 30,
-    right: 15,
+    right: 25,
   },
   plusButtonBox: {
     flex: 1,
@@ -85,7 +115,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
     paddingHorizontal: 12,
-    backgroundColor: '#4d91ff',
+    backgroundColor: '#5c6bc0',
   },
   plusButtonText: {
     fontSize: 38,
@@ -98,8 +128,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 14,
     marginVertical: 8,
-    backgroundColor: '#b1fcf0',
-    borderRadius: 24,
+    backgroundColor: '#c5cae9',
+    borderRadius: 28,
   },
   cardText: {
     fontSize: 18,
